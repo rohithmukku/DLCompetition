@@ -96,7 +96,7 @@ class SimCLR(object):
                     logging.debug(f"Epoch: {epoch_counter}\tIter: {n_iter}\tLoss: {loss}\tTop1 accuracy: {top1[0]} \tTop5 accuracy: {top5[0]}")
                 n_iter += 1
 
-            if epoch_counter % self.args.checkpoint_step == 0:
+            if epoch_counter % self.args.checkpoint_step == self.args.checkpoint_step - 1:
                 # save model checkpoints
                 checkpoint_name = 'checkpoint_{:04d}.pth.tar'.format(self.args.epochs)
                 save_checkpoint({
