@@ -20,6 +20,8 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import numpy as np
 from PIL import Image
+from torch.utils.data import Dataset
+import natsort
 
 class MultiSTL10(dset.STL10):
     def __init__(self, repeat_augmentations, **kwds):
@@ -231,11 +233,12 @@ class CustomDataSet(Dataset):
     def __getitem__(self, idx):
         img_loc = os.path.join(self.main_dir, self.total_imgs[idx])
         image = Image.open(img_loc).convert("RGB")
-        img = torch.from_numpy(np.array(image, np.uint8, copy=False))
+        arr = np.array(image, np.uint8, copy=False)
+        img = torch.from_numpy(arr.copy())
 
         img_list = list()
         if self.transform is not None:
-          for _ in range(repeat_augmentations):
+          for _ in range(self.repeat_augmentations):
             image_trans = self.transform(image.copy())
             img_list.append(image_trans)
         if self.labels == "NA":
@@ -383,7 +386,7 @@ class DataManager():
             elif(dataset=="slim"): 
                 train_set = MultiSlimImageFolder(repeat_augmentations, root="./data/SlimageNet64/train", transform=train_transform)
             elif(dataset=="dldataset"):
-                train_set = CustomDataSet("dataset/unlabaled", transform=train_transform, repeat_augmentations=repeat_augmentations)
+                train_set = CustomDataSet("dataset/unlabeled", transform=train_transform, repeat_augmentations=repeat_augmentations)
         elif(data_type=="single"):
         #Used for: deepinfomax, rotationnet, standard, lineval, finetune, deepcluster
             if(dataset=="cifar10"): 
