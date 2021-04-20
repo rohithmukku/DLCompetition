@@ -69,6 +69,7 @@ class SimCLR(object):
         logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
         logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
+        last_top1 = -1.0
         for epoch_counter in range(self.args.epochs):
             for images, _ in tqdm(train_loader):
                 images = torch.cat(images, dim=0)
@@ -100,17 +101,20 @@ class SimCLR(object):
                     logging.debug(f"Epoch: {epoch_counter}\tIter: {n_iter}\tLoss: {loss}\tTop1 accuracy: {top1[0]} \tTop5 accuracy: {top5[0]}")
                 n_iter += 1
 
-            if epoch_counter % self.args.checkpoint_step == self.args.checkpoint_step - 1:
+            # if epoch_counter % self.args.checkpoint_step == self.args.checkpoint_step - 1:
+            if top1 > last_top1:
                 # save model checkpoints
-                checkpoint_name = 'checkpoint_{:04d}.pth.tar'.format(self.args.epochs)
+                checkpoint_name = '{}_checkpoint_{:04d}_{:04d}.pth.tar'.format(self.args.arch, self.epoch_counter, self.args.epochs)
                 save_checkpoint({
-                    'epoch': self.args.epochs,
+                    'max_epoch': self.args.epochs,
+                    'epoch_counter': self.args.epoch_counter,
                     'arch': self.args.arch,
                     'state_dict': self.model.state_dict(),
                     'optimizer': self.optimizer.state_dict(),
                 # }, is_best=False, filename=os.path.join(self.writer.log_dir, checkpoint_name))
                 }, is_best=False, filename=os.path.join(self.args.checkpoint_dir, checkpoint_name))
                 logging.info(f"Model checkpoint and metadata has been saved at {self.writer.log_dir}.")
+                last_top1 = top1
             # warmup for the first 10 epochs
             if epoch_counter >= 10:
                 self.scheduler.step()
